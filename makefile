@@ -5,6 +5,7 @@ clean:
 	rm -f `find . -maxdepth 4 (-perm -u=x -type f) || (-name=`
 git:
 	git add Data/Neural/*.hs
+	git add Setup.hs
 	git add README
 	git add LICENSE
 	git add TODO
