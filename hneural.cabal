@@ -15,9 +15,9 @@ cabal-version: >=1.6
 
 library
  exposed-modules:
-       	Data.Neural.Linear
-       	Data.Neural.Perceptron
-	Data.Neural.Svg
+       Data.Neural.Linear
+       Data.Neural.Perceptron
+       Data.Neural.Svg
  hs-source-dirs: .
  ghc-options: -Wall
  extensions: 

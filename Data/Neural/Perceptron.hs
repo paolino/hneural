@@ -5,7 +5,7 @@ module Data.Neural.Perceptron where
 import Control.Arrow ((***))
 import Control.Monad (replicateM)
 import Control.Parallel.Strategies (NFData, rnf)
-import Svg (renderSvg,circle,blue,yellow)
+import Data.Neural.Svg (renderSvg,circle,blue,yellow)
 import Data.List (partition)
 import Control.Monad.Random (MonadRandom, getRandomR)
 
