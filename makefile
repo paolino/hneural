@@ -17,5 +17,5 @@ git:
 doc:
 	haddock -o docs -h *.hs	
 edit:
-	gvim *.hs README LICENSE TODO makefile hneural.cabal
+	gvim Data/Neural/*.hs README LICENSE TODO makefile hneural.cabal
 
