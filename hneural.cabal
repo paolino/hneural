@@ -14,13 +14,9 @@ cabal-version: >=1.6
 
 library
  exposed-modules:
-       Data.Neural.Topology
-       Data.Neural.Svg
+       Data.Neural.Reservoir
  hs-source-dirs: .
  ghc-options: -Wall
- extensions: 
-       MultiParamTypeClasses DeriveDataTypeable 
-       FunctionalDependencies FlexibleInstances
 
  build-depends: base        >= 4 && < 5,
                 containers  >= 0.1 && < 1,
@@ -29,3 +25,9 @@ library
                 MonadRandom >= 0.1.4 && < 2,
                 random      >= 1.0 && < 2,
                 array       >= 0.2 && < 1
+Executable reservoir
+  Main-is:           reservoir.hs
+  Build-Depends:     base >= 3 && < 5,
+                     simpleargs >= 0.1 && <2,
+                     binary >= 0.5.0.2 && <2,
+                     bytestring >= 0.9.1.5 && <2

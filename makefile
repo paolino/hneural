@@ -1,21 +1,18 @@
 
 clean:
-	rm -rf *.o 
-	rm -rf *.hi
-	rm -f `find . -maxdepth 4 (-perm -u=x -type f) || (-name=`
+	rm -f *.o 
+	rm -f *.hi
 git:
 	git add Data/Neural/*.hs
-	git add Setup.hs
-	git add README
+	git add reservoir.hs
+	git add hneural.cabal 
 	git add LICENSE
-	git add TODO
 	git add makefile
-	git add hneural.cabal
 	git commit
 	git push
 	
 doc:
 	haddock -o docs -h *.hs	
 edit:
-	gvim Data/Neural/*.hs README LICENSE TODO makefile hneural.cabal
+	gvim Data/Neural/*.hs reservoir.hs LICENSE makefile
 
