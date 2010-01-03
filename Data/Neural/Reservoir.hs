@@ -2,21 +2,15 @@
 
 module Data.Neural.Reservoir (feed, converge, Pattern , Component, Signal, vector, normalize) where
 
-import Control.Monad (replicateM, ap)
+import Control.Monad (replicateM, ap, forM)
 import Control.Applicative ((<$>))
 import Data.Array.Unboxed as AU ((!),listArray,UArray)
-import Control.Monad.Random (MonadRandom, getRandomR, Random)
+import Control.Monad.Random (MonadRandom, getRandomRs, getRandomR, Random)
 import Control.Parallel (pseq) 
 import Data.Maybe (isJust)
-import Data.List (find)
+import Data.List (nub, find)
 
--- | library: normalize the sum of the squares of a vector to k and give back the computed norm
-normalize :: (Floating a) => a -> [a] -> ([a],a)
-normalize k vs = (map ((*k).(/p)) vs,p) where p = sqrt . sum $ zipWith (*) vs vs
-
--- | library: compute a random normalized vector
-vector :: (MonadRandom m , Functor m, Floating a, Random a) => a -> Int -> m [a]
-vector k c = fst . normalize k <$> (replicateM c $ getRandomR (-1,1))
+import Data.Neural.Lib (vector, normalize)
 
 -- | neuron names
 type Key = Int 
@@ -33,13 +27,12 @@ socket :: [Key] -> [Double] -> Socket
 socket = zipWith (\k w -> (w *) . ($k))
 -- | sum the accesses of a socket which is an unbiased linear neuron
 neuron :: Socket -> Scalar
-neuron ts s = sum $ map ($s) ts 
+neuron ts s = sin . sum $ map ($s) ts 
 -- | given a list of nurons evolve a signal, either from a concrete signal made of its component or by an abstract one
 -- Having an abstract one is possible by picking it from a previous evolution. No check is done on the lengths of the 
 -- given components
 evolve :: [Scalar] -> Either [Component] Signal -> [Signal]
-evolve ns x  = f ns $ either signal id x where
-	f ns' = iterate $ \s -> s 0 `pseq` signal (map ($s) ns') 
+evolve ns = tail . iterate (\s -> signal (map ($s) ns)) . either signal id  where
 	signal :: [Component] -> Signal -- make a signal from its components
 	signal xs = (AU.!) $ (AU.listArray (0, length ns - 1) xs :: AU.UArray Key Double)
 -- | a pattern is the list of Components of the input neurons
@@ -58,7 +51,7 @@ feed :: (Functor m , MonadRandom m)
 	-> m (Feed m)	-- ^ computed Feed 
 feed n c ins k = do 
 		b <- replicateM n $ do 
-			ks <- replicateM c $ getRandomR (0, n - 1)
+			ks <- take c <$> getRandomRs (0, n - 1)
 			ws <- vector k $ c + ins
 			return . neuron $ socket (ks ++ [n .. n + ins - 1]) ws
 		return $ \is -> fmap (evolve $ b ++ map const is) . 

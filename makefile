@@ -4,7 +4,7 @@ clean:
 	rm -f *.hi
 git:
 	git add Data/Neural/*.hs
-	git add reservoir.hs
+	git add *.hs
 	git add hneural.cabal 
 	git add LICENSE
 	git add makefile
@@ -14,5 +14,5 @@ git:
 doc:
 	haddock -o docs -h *.hs	
 edit:
-	gvim Data/Neural/*.hs reservoir.hs LICENSE makefile
+	gvim Data/Neural/*.hs *.hs hneural.cabal LICENSE makefile
 
