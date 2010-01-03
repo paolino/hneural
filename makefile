@@ -6,6 +6,7 @@ git:
 	git add Data/Neural/*.hs
 	git add *.hs
 	git add hneural.cabal 
+	git add images/*.png
 	git add LICENSE
 	git add makefile
 	git commit
