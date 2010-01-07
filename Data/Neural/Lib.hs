@@ -1,5 +1,5 @@
 
-
+{-# LANGUAGE ScopedTypeVariables #-}
 module Data.Neural.Lib where
 
 import Control.Applicative ((<$>))
@@ -53,7 +53,10 @@ cached f = let
 	q a x = (cached' (M.insert x y a), y ) where
 		y = f x
 	cached' a = Cached $ g a
-	in Cached $ g M.empty  
+	in cached' M.empty  
+
 
 mapCached :: Cached a b -> [a] -> (Cached a b,[b])
 mapCached = mapAccumL eval 
+
+

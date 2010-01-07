@@ -4,8 +4,8 @@ module Data.Neural.Classification where
 
 import Data.Binary
 import Data.Neural.Lib
-import Data.Neural.Perceptron
-import Data.Neural.Reservoir
+import qualified Data.Neural.Perceptron as P
+import qualified Data.Neural.Reservoir as R
 
 
 type Query p c = Maybe (Cached p c)
@@ -24,5 +24,9 @@ train (Trainer ftr) cl@(Classification pc fcl _) = case ftr pc of
 save :: Classification p c -> FilePath -> IO ()
 save (Classification _ _ s) n = encodeFile n s
 
-data State = State {
+type State = (R.Reservoir, [P.Weight])
+
+cachedR :: R.Reservoir -> Cached R.Pattern R.Class
+cachedR 
+classification :: State -> Classification R.Pattern R.Class
 

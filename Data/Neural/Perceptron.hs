@@ -1,3 +1,4 @@
+-- | A perceptron is a linear classifier . It can corrrect its weights to respect a given set of pattern->class relations
 module Data.Neural.Perceptron where
 
 import Data.Maybe
@@ -5,10 +6,8 @@ import Control.Monad.Random
 import Control.Monad
 import Control.Applicative
 import Data.Neural.Lib
+import Data.Neural.Signal
 
-type Pattern = [Double]
-type Class = Double
-type Fact = (Pattern,Class)
 type WFact = (Double,Fact)
 type Weights = [Double]
 type Error = Double
@@ -41,8 +40,6 @@ deltaRule ins (sig,desig) = let
 		e = y - y'
 		ws' = zipWith (+) ws (map ((* desig y') . (*c) . (*e)) (1:xs))
 	in perceptron <$> replicateM (ins + 1) (getRandomR (-1,1))
-
-data State2 = State2 {modulus :: Online Double Double, weights :: Online Double Double}
 
 deltaRule'' :: (Functor m , MonadRandom m) => Int -> Activator -> Double -> m Perceptron	
 deltaRule''  ins (sig,desig) k = let
