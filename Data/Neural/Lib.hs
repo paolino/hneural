@@ -9,8 +9,9 @@ import Control.Monad
 import System.SimpleArgs
 import System.IO
 import System.Exit
-import Data.List (unfoldr)
+import Data.List
 import Control.Exception
+import qualified Data.Map as M
 import Prelude hiding (catch)
 
 sigmoid x = 1/(1 + exp (-x))
@@ -46,4 +47,13 @@ deviazione k k' =	let f y z x = Online (f y' z') (sqrt $ peek z'- peek y' ^ 2) w
 				y' = inject y x
 			in Online (f (media k) (media k)) 0
 
-	
+data Cached a b = Cached {eval :: a -> (Cached a b, b)}
+cached f = let 
+	g a x = maybe (q a x) (const (cached' a) &&& id ) (x `M.lookup` a) 
+	q a x = (cached' (M.insert x y a), y ) where
+		y = f x
+	cached' a = Cached $ g a
+	in Cached $ g M.empty  
+
+mapCached :: Cached a b -> [a] -> (Cached a b,[b])
+mapCached = mapAccumL eval 

@@ -1,6 +1,8 @@
-import System.IO (stdout,hPutStrLn)
+import System.IO (stdout,hPutStrLn,hClose,hSetBinaryMode,hSetBuffering,BufferMode (..))
 import System.Exit (exitSuccess)
 import Data.List (intercalate)
+import qualified Data.ByteString.Lazy as BS (hPutStr)
+import Data.Binary (encode)
 
 
 import Data.Neural.Lib (normalize, getArgs')
@@ -21,8 +23,13 @@ patterns2D sx sy k = [fst . normalize k $ [f sx x,f sy y,3]
 
 main :: IO b
 main = do
-	(sx,sy,k) <- getArgs' "args: <number of x samples> <number of y samples> <normalization>"
-	mapM_ (hPutStrLn stdout . intercalate " " . map show) $ patterns2D sx sy k
+	(b,sx,sy,k) <- getArgs' "args: <number of x samples> <number of y samples> <normalization>"
+	let ps = patterns2D sx sy k
+	if b == "B" then do
+		hSetBinaryMode stdout True
+		BS.hPutStr stdout . encode $ ps
+		else mapM_ (hPutStrLn stdout . intercalate " " . map show) ps
+	hClose stdout
 	exitSuccess
 	
 	

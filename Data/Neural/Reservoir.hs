@@ -1,6 +1,7 @@
 -- | This module exports useful bindings and types for building an echo state network reservoir, and find its stable states for given patterns
 
-module Data.Neural.Reservoir (feed, converge, Pattern , Component, Signal, vector, normalize) where
+module Data.Neural.Reservoir (feed, converge, Pattern , reservoir, Reservoir, 
+	Component, Signal, vector, normalize, Feed) where
 
 import Control.Monad (replicateM, ap, forM)
 import Control.Applicative ((<$>))
@@ -21,13 +22,10 @@ type Signal = Key -> Component
 -- | a scalar from the signal , both synapses and neurons are scalar
 type Scalar = Signal -> Component
 -- | socket is a set of synapses
-type Socket = [Scalar]
--- | build a socket by a list of names and a list of vector
-socket :: [Key] -> [Double] -> Socket
-socket = zipWith (\k w -> (w *) . ($k))
 -- | sum the accesses of a socket which is an unbiased linear neuron
-neuron :: Socket -> Scalar
-neuron ts s = sin . sum $ map ($s) ts 
+neuron :: [(Key,Double)] -> Scalar
+neuron ts s = sin . sum .  map (\(k,w) -> w * s k) $ ts
+
 -- | given a list of nurons evolve a signal, either from a concrete signal made of its component or by an abstract one
 -- Having an abstract one is possible by picking it from a previous evolution. No check is done on the lengths of the 
 -- given components
@@ -42,20 +40,31 @@ type Pattern = [Component]
 -- it can take a previoulsly computed signal, or it will boot a new one from the monadic environment
 type Feed m = Pattern -> Maybe Signal -> m [Signal]
 
--- | compute a feed from echo state network parameters. Weights and routes are booted from the monadic environment 
-feed :: (Functor m , MonadRandom m) 
+-- | The serialization of a reservoir. This is a sparse matrix compressed rendering
+type Reservoir = [[(Key,Component)]]
+
+-- | build a random reservoir , given some parameters
+reservoir :: (Functor m , MonadRandom m) 
 	=> Int 		-- ^ Number of neurons
 	-> Int 		-- ^ Number of incoming synapses per neuron
 	-> Int 		-- ^ Number of input neurons
 	-> Double 	-- ^ Normalization factor (max eigenvalue)
-	-> m (Feed m)	-- ^ computed Feed 
-feed n c ins k = do 
-		b <- replicateM n $ do 
+	-> m Reservoir	-- ^ Reservoir
+reservoir n c ins k = do 
+		replicateM n $ do 
 			ks <- take c <$> getRandomRs (0, n - 1)
 			ws <- vector k $ c + ins
-			return . neuron $ socket (ks ++ [n .. n + ins - 1]) ws
-		return $ \is -> fmap (evolve $ b ++ map const is) . 
-			maybe (Left <$> vector 1 (n + ins)) (return . Right) 
+			return $ zip (ks ++ [n .. n + ins - 1]) ws
+
+-- | compute a feed from a reservoir. Parameters must be given to boot a dimensionally valid signal 
+feed :: (Functor m , MonadRandom m) 
+	=> Reservoir	-- ^ given Reservoir
+	-> Int		-- ^ inputs
+	-> Int		-- ^ neurons
+	-> Feed m	-- ^ computed Feed 
+feed r ins n is = fmap (evolve $ map neuron r ++ map const is) . 
+		maybe (Left <$> vector 1 (n + ins)) (return . Right) 
+
 -- | evolve the Signal until a convergence is reached. Here convergence is funcion f which states that all the 
 -- absolute differences between this and previous signal components are less than a given epsilon
 converge 	:: Double	-- ^ epsilon 
