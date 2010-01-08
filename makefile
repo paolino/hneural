@@ -7,7 +7,6 @@ git:
 	git add *.hs
 	git add hneural.cabal 
 	git add images/*	
-	git add Data/Neural/Examples/*.hs
 	git add LICENSE
 	git add makefile
 	git commit
@@ -16,5 +15,5 @@ git:
 doc:
 	haddock -o docs -h *.hs	
 edit:
-	gvim Data/Neural/*.hs Data/Neural/Examples/*.hs *.hs hneural.cabal LICENSE makefile
+	gvim Data/Neural/*.hs  *.hs hneural.cabal LICENSE makefile
 

@@ -1,32 +1,23 @@
-{-# LANGUAGE ExistentialQuantification#-}
 
 module Data.Neural.Classification where
 
 import Data.Binary
 import Data.Neural.Lib
-import qualified Data.Neural.Perceptron as P
-import qualified Data.Neural.Reservoir as R
+import Data.Neural.Signal
+import Control.Arrow
+import Control.Applicative
 
+data Classification m = Classification 
+	(Pattern -> m (Class,Classification m))
+	((Pattern,Class) -> m (Classification m))
 
-type Query p c = Maybe (Cached p c)
+data Core m = Core (Pattern -> m (Signal, Core m))
 
-type Domained p c = [(p,c)]
+data Cortex = Cortex (Signal -> Class) ((Signal,Class) -> Cortex)
 
-data Classification p c = forall s. Binary s => Classification (Query p c) (Domained p c -> Classification p c) s
-
-data Trainer p c = Trainer (Query p c -> Maybe (Domained p c, Trainer p c))
-
-train :: Trainer p c -> Classification p c -> Classification p c
-train (Trainer ftr) cl@(Classification pc fcl _) = case ftr pc of 
-		Just (d,tr') -> train tr' $ fcl d
-		Nothing -> cl 
-
-save :: Classification p c -> FilePath -> IO ()
-save (Classification _ _ s) n = encodeFile n s
-
-type State = (R.Reservoir, [P.Weight])
-
-cachedR :: R.Reservoir -> Cached R.Pattern R.Class
-cachedR 
-classification :: State -> Classification R.Pattern R.Class
-
+classification :: (Monad m, Functor m) => Core m -> Cortex -> Classification m
+classification r c = Classification (classify r c) (train r c) where
+	classify (Core r) c@(Cortex o _) p = (o *** flip classification c) <$> r p
+	train (Core r) (Cortex _ t) (p,cl) = do
+		(s,r') <- r p
+		return . classification r' . t $ (s,cl)

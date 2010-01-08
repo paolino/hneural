@@ -13,6 +13,7 @@ import Data.List (find)
 
 import Data.Neural.Lib (vector, normalize)
 import Data.Neural.Signal (Signal,Sword, Key, Component,Pattern)
+import Data.Neural.Classification (Core (..))
 
 -- | computing a component from a signal, which is a scalar opearation
 type Scalar = Signal -> Component
@@ -55,18 +56,16 @@ feed :: (Functor m , MonadRandom m)
 feed (ins,r)  is = fmap (evolve $ map neuron r ++ map const is) . 
 		maybe (Left <$> vector 1 (length r + ins)) (return . Right) 
 
--- | Reservoir operation, hiding cache and last signal inside.
-data Operation m = Operation (Pattern -> m (Signal, Operation m))
 
--- | build an Operation given a Sword and a Reservoir, the funcion Pattern -> m Signal is cached, and booting Signal, for every Pattern is the result of last computation (or cache picking).
-operation :: forall m . (MonadRandom m, Functor m) => Sword -> Reservoir -> Operation m
-operation sw rs = Operation  $ op M.empty Nothing where
+-- | implement a Classification.Core given a Sword and a Reservoir, the funcion Pattern -> m Signal is cached, and booting Signal, for every Pattern is the result of last computation (or cache picking).
+operation :: forall m . (MonadRandom m, Functor m) => Sword -> Reservoir -> Core m
+operation sw rs = Core  $ op M.empty Nothing where
 	op ca ms p = do 
 		(s,ca') <- case p `M.lookup` ca of 
 			Nothing -> do 	s <- sw <$> feed rs p ms 
 					return (s,M.insert p s ca) 
 			Just s -> return (s,ca) 
-		return (s, Operation . op ca' $ Just s)
+		return (s, Core . op ca' $ Just s)
 
 -- | build A Sword from a boolean function on last 2 signals. It returns the second in case of True	
 stopBy :: ((Signal,Signal) -> Bool) -> Sword
